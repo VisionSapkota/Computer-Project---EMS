@@ -1,13 +1,14 @@
 DECLARE SUB Login()
 DECLARE SUB AdminDashboard()
-DECLARE SUB EmployeeDashboard()
+DECLARE SUB EmployeeDashboard(id)
 DECLARE SUB EmployeeModule()
 DECLARE SUB AdminModule()
 DECLARE SUB ViewEmployee()
 DECLARE SUB AddEmployee()
 DECLARE SUB UpdateEmployee()
 DECLARE SUB DeleteEmployee()
-DECLARE SUB salaryDetails()
+DECLARE SUB empSalaryDetails()
+DECLARE SUB adminSalaryDetails()
 DECLARE SUB Delay(seconds)
 DECLARE SUB viewAdmin()
 DECLARE SUB addAdmin()
@@ -68,11 +69,13 @@ SUB Login()
 
     let verified = 0
     let user$ = ""
+    let id = 0
     WHILE NOT EOF(1)
         INPUT #1, userID, userEmail$, userPassword$, userRole$
         if email$ = userEmail$ AND password$ = userPassword$ THEN  
             verified = 1
             user$ = userRole$
+            id = userID
         ENDIF
     WEND
 
@@ -102,7 +105,7 @@ SUB Login()
     ENDIF
 
     IF user$ = "employee" THEN
-        CALL EmployeeDashboard
+        CALL EmployeeDashboard(id)
     ELSEIF user$ = "admin" THEN
         CALL AdminDashboard
     ENDIF 
@@ -171,16 +174,45 @@ End Sub
 ' Employee Module
 Sub EmployeeModule()
     CLS
-    PRINT "Welcome to the Employee Module."
-    PRINT
-    PRINT "1. Employee List"
-    PRINT "2. Add Employee"
-    PRINT "3. Update Employee"
-    PRINT "4. Delete Employee"
-    PRINT "5. Salary Details"
-    PRINT "10. Main Menu"
+    LOCATE 6, 15
+    COLOR 8
+    PRINT STRING$(45, "-")
 
+    LOCATE 19, 15
+    COLOR 8
+    PRINT STRING$(45, "-")
+
+    LOCATE 7, 31
+    COLOR 2
+    PRINT "Employee Module"
+    
+    For i = 7 To 18
+        Locate i, 15
+        Color 8
+        Print String$(1, "|")
+    Next i
+
+    For i = 7 To 18
+        Locate i, 59
+        Color 8
+        Print String$(1, "|")
+    Next i
+
+    COLOR 7
+    LOCATE 9, 17
+    PRINT "1. Employee records"
+    LOCATE 10, 17
+    PRINT "2. Add Employee"
+    LOCATE 11, 17
+    PRINT "3. Update Employee"
+    LOCATE 12, 17
+    PRINT "4. Delete Employee"
+    LOCATE 13, 17
+    PRINT "5. Main Menu"
+    LOCATE 16, 20
     INPUT "Enter your choice: ", empChoice
+
+    let error$ = ""
     SELECT CASE empChoice
         CASE 1
             CALL ViewEmployee
@@ -191,109 +223,180 @@ Sub EmployeeModule()
         CASE 4
             CALL DeleteEmployee
         CASE 5
-            PRINT "Viewing Salary Details..."
-            ' Call function to view salary details
-        CASE 10
             CALL AdminDashboard
         CASE ELSE
-            PRINT "Invalid choice. Please try again."
+            error$ = "Invalid choice. Please try again."
     END SELECT
+
+    IF error$ <> "" THEN
+        COLOR 4
+        LOCATE 17, 22
+        PRINT error$
+        Delay(2)
+        CALL EmployeeModule
+    ENDIF
 End Sub 
 
 ' View Employees
 SUB ViewEmployee()
     CLS
-    PRINT "Viewing Employee Details..."
     PRINT
     OPEN "employees.dat" FOR INPUT AS #1
 
     isData = 0
+    COLOR 6
     PRINT TAB(2); "id"; TAB(8); "Name"; TAB(20); "Designation"; TAB(35); "Address"; TAB(50); "Department"
+    COLOR 7
+    LOCATE 3, 2
+    PRINT STRING$(60, "-")
     WHILE NOT EOF(1)
         INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         isData = 1
         PRINT TAB(2); id; TAB(8); name$; TAB(20); designation$; TAB(35); address$; TAB(50); department$
     WEND
-    if isData = 0 then PRINT "No employee data found."
+
+    if isData = 0 then 
+        COLOR 4
+        LOCATE 4,18
+        PRINT "No employee data found."
+    ENDIF
     CLOSE #1
 
+    COLOR 7
+    PRINT
+    PRINT STRING$(60, "-")
     DELAY(2)
-
+    
     again:
     PRINT
     PRINT "1. Salary details"
     PRINT "2. Main menu"
+    
+    PRINT 
     PRINT
-
     INPUT "Enter your choice: ", choice
+    PRINT
 
     SELECT CASE choice
         CASE 1
-            CALL salaryDetails
+            CALL empSalaryDetails
         CASE 2
             CALL EmployeeModule
         CASE ELSE
-            PRINT "Invalid Choice. Please try again."
+            error$ = "Invalid Choice. Please try again."
             GOTO again
     END SELECT
+
+    if error$ <> "" THEN
+        COLOR 4
+        PRINT error$
+    ENDIF
 END SUB
 
 ' Add an Employee
 SUB AddEmployee()
-    CLS
-    PRINT "Adding Employee Details..."
-    PRINT
     let id = genereateIDForEmployee
 
     OPEN "employees.dat" FOR APPEND AS #1
     OPEN "empAuth.dat" FOR INPUT AS #2
     OPEN "empAuth.dat" FOR APPEND AS #3
+    OPEN "adminAuth.dat" FOR INPUT AS #4
 
-    name:
-    INPUT "Enter Employee Name: ", name$
-    if name$ = "" THEN GOTO name
-
-    designation:
-    INPUT "Enter Designation: ", designation$
-    if designation$ = "" THEN GOTO designation
-    
-    address:
-    INPUT "Enter Address: ", address$
-    if address$ = "" THEN GOTO address
-
-    department:
-    INPUT "Enter Department: ", department$
-    if department$ = "" THEN GOTO department
-
-    basicSalary:
-    INPUT "Enter Basic Salary: ", basicSalary
-    if basicSalary$ = "" THEN GOTO basicSalary
-
+    details:
     CLS
-    PRINT
-    PRINT "Set up login credentials for the employee."
-    PRINT
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
 
-    email:
+    LOCATE 18, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 17
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 17
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    COLOR 2
+    LOCATE 5, 35
+    PRINT "Add Employee"
+    
+    COLOR 7
+    LOCATE 9, 15
+    INPUT "Enter Employee Name: ", name$
+    LOCATE 10, 15
+    INPUT "Enter Designation: ", designation$
+    LOCATE 11, 15
+    INPUT "Enter Address: ", address$
+    LOCATE 12, 15
+    INPUT "Enter Department: ", department$
+    LOCATE 13, 15
+    INPUT "Enter Basic Salary: ", basicSalary
+
+    IF name$ = "" OR designation$ = "" OR address$ = "" OR department$ = "" OR basicSalary = 0 THEN 
+        PRINT "Something is missing"
+        Delay(2)
+        GOTO details
+    ENDIF
+
+    auth:
+    CLS
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
+
+    LOCATE 18, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 17
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 17
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    COLOR 2
+    LOCATE 5, 35
+    PRINT "Add Employee"
+
+    COLOR 7
+    LOCATE 9, 15
     INPUT "Enter email: ", email$
-
-    if email$ = "" THEN GOTO email
     WHILE NOT EOF(2)
         INPUT #2, userID, userEmail$, userPassword$, userRole$
         if userEmail$ = email$ Then 
+            LOCATE 13, 15
             PRINT "Email already exists."
             CALL Delay(2)
-            GOTO email
+            GOTO auth
         ENDIF
     WEND
 
-    password:
+    WHILE NOT EOF(4)
+        INPUT #4, userID, userEmail$, userPassword$, userRole$
+        if userEmail$ = email$ Then 
+            LOCATE 13, 15
+            PRINT "Email already exists."
+            CALL Delay(2)
+            GOTO auth
+        ENDIF
+    WEND
+
+    LOCATE 11, 15
     INPUT "Enter password: ", password$
     if len(password$) < 6 then 
+        LOCATE 13, 15
         PRINT "Password must be at least 6 characters long."
         CALL Delay(2)
-        GOTO password
+        GOTO auth
     ENDIF
+
+    IF email$ = "" OR password$ = "" THEN GOTO auth
 
     HRA = 0.2 * basicSalary
     MA = 0.15 * basicSalary
@@ -301,7 +404,7 @@ SUB AddEmployee()
     monthlyTax = 0
 
     if (totalSalary * 12) <= 500000 THEN
-        monthlyTax = (0.1 * (totalSalary * 12))/12
+        monthlyTax = (0.01 * (totalSalary * 12))/12
     ELSE
         monthlyTax = (0.13 * (totalSalary * 12))/12
     ENDIF
@@ -314,10 +417,13 @@ SUB AddEmployee()
     CLOSE #1
     CLOSE #2
     CLOSE #3
+    CLOSE #4
 
+    LOCATE 13, 15
     PRINT "Employee added successfully with ID: "; id
     CALL Delay(2)
 
+    LOCATE 15, 20
     INPUT "repeat add another employee? (y/n): ", ans$
     IF ans$ = "y" OR ans$ = "Y" THEN
         CALL AddEmployee
@@ -328,99 +434,127 @@ END SUB
 
 ' Update Employee
 SUB UpdateEmployee()
-    CLS
-    PRINT "Updating Employee Details..."
-    PRINT
-
     OPEN "employees.dat" FOR INPUT AS #1
     OPEN "temp.dat" FOR OUTPUT AS #2
 
+    CLS
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
+
+    LOCATE 7, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 6
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 6
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    LOCATE 5, 17
     INPUT "Enter Employee ID to update: ", empID
     found = 0
 
-    PRINT TAB(2); "id"; TAB(8); "Name"; TAB(15); "Designation"; TAB(30); "Address"; TAB(45); "Department"; TAB(60); "Basic Salary"
+    LOCATE 9, 1
+    COLOR 6
+    PRINT TAB(2); "id"; TAB(8); "Name"; TAB(17); "Designation"; TAB(32); "Address"; TAB(47); "Department"; TAB(62); "Basic Salary"
+
+    COLOR 7
+    LOCATE 10, 3
+    PRINT STRING$(70, "-")
 
     WHILE NOT EOF(1)
         INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         IF id = empID THEN
             found = 1
-            PRINT TAB(2); id; TAB(8); name$; TAB(15); designation$; TAB(30); address$; TAB(45); department$; TAB(60); basicSalary
+            PRINT TAB(2); id; TAB(8); name$; TAB(17); designation$; TAB(32); address$; TAB(47); department$; TAB(62); basicSalary
+            
+            PRINT TAB(2); STRING$(70, "-")
             PRINT
+            PRINT
+            PRINT TAB(4);
+            DELAY(3)
 
-            ' Update Name
-            INPUT "Do you want to update name? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new name: ", name$
-            END IF
+            INPUT "Confirm employee update (y/n): ", answer$
+            IF answer$ = "Y" OR answer$ = "y" THEN 
+                ' Update Name
+                INPUT "Do you want to update name? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new name: ", name$
+                END IF
 
-            ' Update Designation
-            INPUT "Do you want to update designation? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new designation: ", designation$
-            END IF
+                ' Update Designation
+                INPUT "Do you want to update designation? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new designation: ", designation$
+                END IF
 
-            ' Update Address
-            INPUT "Do you want to update address? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new address: ", address$
-            END IF
+                ' Update Address
+                INPUT "Do you want to update address? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new address: ", address$
+                END IF
 
-            ' Update Department
-            INPUT "Do you want to update department? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new department: ", department$
-            END IF
+                ' Update Department
+                INPUT "Do you want to update department? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new department: ", department$
+                END IF
 
-            ' Update Basic Salary
-            INPUT "Do you want to update basic salary? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new basic salary: ", basicSalary
+                ' Update Basic Salary
+                INPUT "Do you want to update basic salary? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new basic salary: ", basicSalary
 
-                HRA = 0.2 * basicSalary
-                MA = 0.15 * basicSalary
-                totalSalary = basicSalary + HRA + MA
-                monthlyTax = 0
+                    HRA = 0.2 * basicSalary
+                    MA = 0.15 * basicSalary
+                    totalSalary = basicSalary + HRA + MA
+                    monthlyTax = 0
 
-                if (totalSalary * 12) <= 500000 THEN
-                    monthlyTax = (0.1 * (totalSalary * 12))/12
-                ELSE
-                    monthlyTax = (0.13 * (totalSalary * 12))/12
-                ENDIF
-                netSalary = totalSalary - monthlyTax
-            END IF
-
-            ' Update employee authentication data
-            INPUT "Do you want to update authentication data? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                OPEN "empAuth.dat" FOR INPUT AS #3
-                OPEN "auth-temp.dat" FOR OUTPUT AS #4
-
-                WHILE NOT EOF(3)
-                    INPUT #3, userID, userEmail$, userPassword$, userRole$
-                    IF userID = empID THEN
-                        ' Update email
-                        INPUT "Do you want to update email? (y/n): ", rep$
-                        IF LCASE$(rep$) = "y" THEN 
-                            INPUT "Enter new email: ", newEmail$
-                        ELSE
-                            newEmail$ = userEmail$
-                        ENDIF
-
-                        ' userRole update code .....
-
-                        WRITE #4, userID, newEmail$, userPassword$, userRole$
+                    if (totalSalary * 12) <= 500000 THEN
+                        monthlyTax = (0.01 * (totalSalary * 12))/12
                     ELSE
-                        WRITE #4, userID, userEmail$, userPassword$, userRole$
-                    END IF
-                WEND
-                CLOSE #3
-                CLOSE #4
-                KILL "empAuth.dat"
-                NAME "auth-temp.dat" AS "empAuth.dat"
-            ENDIF
+                        monthlyTax = (0.13 * (totalSalary * 12))/12
+                    ENDIF
+                    netSalary = totalSalary - monthlyTax
+                END IF
 
-            WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
-            PRINT "Employee details updated successfully."
+                ' Update employee authentication data
+                INPUT "Do you want to update authentication data? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    OPEN "empAuth.dat" FOR INPUT AS #3
+                    OPEN "auth-temp.dat" FOR OUTPUT AS #4
+
+                    WHILE NOT EOF(3)
+                        INPUT #3, userID, userEmail$, userPassword$, userRole$
+                        IF userID = empID THEN
+                            ' Update email
+                            INPUT "Do you want to update email? (y/n): ", rep$
+                            IF LCASE$(rep$) = "y" THEN 
+                                INPUT "Enter new email: ", newEmail$
+                            ELSE
+                                newEmail$ = userEmail$
+                            ENDIF
+
+                            ' userRole update code .....
+
+                            WRITE #4, userID, newEmail$, userPassword$, userRole$
+                        ELSE
+                            WRITE #4, userID, userEmail$, userPassword$, userRole$
+                        END IF
+                    WEND
+                    CLOSE #3
+                    CLOSE #4
+                    KILL "empAuth.dat"
+                    NAME "auth-temp.dat" AS "empAuth.dat"
+                ENDIF
+
+                WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+                PRINT "Employee details updated successfully."
+            ENDIF
         ELSE
             WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         ENDIF
@@ -497,21 +631,42 @@ SUB DeleteEmployee()
 END SUB
 
 ' Create Salary details for Employee
-SUB salaryDetails()
+SUB empSalaryDetails()
+    CLS
+    PRINT
     OPEN "employees.dat" FOR INPUT AS #1
 
-    CLS
+    isData = 0
+    COLOR 6
     PRINT TAB(2); "id"; TAB(8); "Basic Salary"; TAB(23); "Total Salary"; TAB(38); "Monthly Salary"; TAB(55); "Net Salary"
+    COLOR 7
+    LOCATE 3, 2
+    PRINT STRING$(60, "-")
+
     WHILE NOT EOF(1)
         INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+        isData = 1
         PRINT TAB(2); id; TAB(8); basicSalary; TAB(23); totalSalary; TAB(38); monthlyTax; TAB(55); netSalary
     WEND
+    
+    if isData = 0 then 
+        COLOR 4
+        LOCATE 4,18
+        PRINT "No employee data found."
+    ENDIF
     CLOSE #1
+
+    COLOR 7
+    PRINT
+    PRINT STRING$(60, "-")
+    DELAY(2)
 
     ' Main Menu
     INPUT "Main Menu (y/n): ", ans$
     If ans$ = "Y" OR ans$ = "y" THEN 
         CALL ViewEmployee
+    ELSE
+        CALL empSalaryDetails
     ENDIF
 END SUB
 
@@ -542,16 +697,45 @@ END SUB
 ' Admin Module
 Sub AdminModule()
     CLS
-    PRINT "Welcome to the Admin Module."
-    PRINT
-    PRINT "1. Admin List"
-    PRINT "2. Add Admin"
-    PRINT "3. Update Admin"
-    PRINT "4. Delete Admin"
-    PRINT "5. Main Menu"
+    LOCATE 6, 15
+    COLOR 8
+    PRINT STRING$(45, "-")
 
+    LOCATE 19, 15
+    COLOR 8
+    PRINT STRING$(45, "-")
+
+    LOCATE 7, 31
+    COLOR 2
+    PRINT "Admin Module"
+    
+    For i = 7 To 18
+        Locate i, 15
+        Color 8
+        Print String$(1, "|")
+    Next i
+
+    For i = 7 To 18
+        Locate i, 59
+        Color 8
+        Print String$(1, "|")
+    Next i
+
+    COLOR 7
+    LOCATE 9, 17
+    PRINT "1. Admin records"
+    LOCATE 10, 17
+    PRINT "2. Add Admin"
+    LOCATE 11, 17
+    PRINT "3. Update Admin"
+    LOCATE 12, 17
+    PRINT "4. Delete Admin"
+    LOCATE 13, 17
+    PRINT "5. Main Menu"
+    LOCATE 16, 20
     INPUT "Enter your choice: ", adminChoice
 
+    let error$ = ""
     SELECT CASE adminChoice
         CASE 1
             CALL viewAdmin
@@ -564,88 +748,177 @@ Sub AdminModule()
         CASE 5
             CALL AdminDashboard
         CASE ELSE
-            PRINT "Invalid choice. Please try again."
+            error$ = "Invalid choice. Please try again."
     END SELECT
+
+    IF error$ <> "" THEN
+        COLOR 4
+        LOCATE 17, 22
+        PRINT error$
+        Delay(2)
+        CALL AdminModule
+    ENDIF
 End Sub
 
 ' View Admin
 SUB viewAdmin()
     CLS
-    PRINT "Viewing Admin Details..."
     PRINT
     OPEN "admin.dat" FOR INPUT AS #1
 
     isData = 0 
-    PRINT "id", "Name", "Designation", "Address", "Department", "Basic Salary", "Total Salary", "Monthly Tax", "Net Salary"
+    COLOR 6
+    PRINT TAB(2); "id"; TAB(8); "Name"; TAB(20); "Designation"; TAB(35); "Address"; TAB(50); "Department"
+    COLOR 7
+    LOCATE 3, 2
+    PRINT STRING$(60, "-")
     WHILE NOT EOF(1)
         INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         isData = 1
-        PRINT id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+        PRINT TAB(2); id; TAB(8); name$; TAB(20); designation$; TAB(35); address$; TAB(50); department$
     WEND
 
-    IF isData = 0 THEN PRINT "No records found."
+    if isData = 0 then 
+        COLOR 4
+        LOCATE 4,18
+        PRINT "No admin data found."
+    ENDIF
     CLOSE #1
-    ' Main menu
-    INPUT "Main Menu? (y/n): ", ans$
-    IF ans$ = "y" OR ans$ = "Y" THEN
-        CALL AdminModule
-    END IF
+
+    COlOR 7
+    PRINT
+    PRINT STRING$(60, "-")
+    DELAY(2)
+    
+    again:
+    PRINT
+    PRINT "1. Salary details"
+    PRINT "2. Main menu"
+    
+    PRINT 
+    PRINT
+    INPUT "Enter your choice: ", choice
+    PRINT
+
+    SELECT CASE choice
+        CASE 1
+            CALL adminSalaryDetails
+        CASE 2
+            CALL AdminModule
+        CASE ELSE
+            error$ = "Invalid Choice. Please try again."
+            GOTO again
+    END SELECT
+
+    if error$ <> "" THEN
+        COLOR 4
+        PRINT error$
+    ENDIF
 END SUB
 
 ' Add Admin
 SUB addAdmin()
-    CLS
-    PRINT "Adding New Admin..."
     let id = genereateIDForAdmin
-
     OPEN "admin.dat" FOR APPEND AS #1
     OPEN "adminAuth.dat" FOR INPUT AS #2
     OPEN "adminAuth.dat" FOR APPEND AS #3
+    OPEN "empAuth.dat" FOR INPUT AS #4
 
-    name:
-    INPUT "Enter Admin Name: ", name$
-    if name$ = "" THEN GOTO name
-
-    designation:
-    INPUT "Enter Designation: ", designation$
-    if designation$ = "" THEN GOTO designation
-    
-    address:
-    INPUT "Enter Address: ", address$
-    if address$ = "" THEN GOTO address
-
-    department:
-    INPUT "Enter Department: ", department$
-    if department$ = "" THEN GOTO department
-
-    basicSalary:
-    INPUT "Enter Basic Salary: ", basicSalary
-    if basicSalary$ = "" THEN GOTO basicSalary
-
+    details:
     CLS
-    PRINT
-    PRINT "Set up login credentials for the admin."
-    PRINT
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
 
-    email:
+    LOCATE 18, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 17
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 17
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    COLOR 2
+    LOCATE 5, 35
+    PRINT "Add Admin"
+    
+    COLOR 7
+    LOCATE 9, 15
+    INPUT "Enter Admin Name: ", name$
+    LOCATE 10, 15
+    INPUT "Enter Designation: ", designation$
+    LOCATE 11, 15
+    INPUT "Enter Address: ", address$
+    LOCATE 12, 15
+    INPUT "Enter Department: ", department$
+    LOCATE 13, 15
+    INPUT "Enter Basic Salary: ", basicSalary
+
+    IF name$ = "" OR designation$ = "" OR address$ = "" OR department$ = "" OR basicSalary = 0 THEN 
+        PRINT "Something is missing"
+        Delay(2)
+        GOTO details
+    ENDIF
+
+    auth:
+    CLS
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
+
+    LOCATE 18, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 17
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 17
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    COLOR 2
+    LOCATE 5, 35
+    PRINT "Add Admin"
+
+   COLOR 7
+    LOCATE 9, 15
     INPUT "Enter email: ", email$
-    if email$ = "" THEN GOTO email
     WHILE NOT EOF(2)
         INPUT #2, userID, userEmail$, userPassword$, userRole$
         if userEmail$ = email$ Then 
+            LOCATE 13, 15
             PRINT "Email already exists."
             CALL Delay(2)
-            GOTO email
+            GOTO auth
         ENDIF
     WEND
 
-    password:
+    WHILE NOT EOF(4)
+        INPUT #4, userID, userEmail$, userPassword$, userRole$
+        if userEmail$ = email$ Then 
+            LOCATE 13, 15
+            PRINT "Email already exists."
+            CALL Delay(2)
+            GOTO auth
+        ENDIF
+    WEND
+
+    LOCATE 11, 15
     INPUT "Enter password: ", password$
     if len(password$) < 6 then 
+        LOCATE 13, 15
         PRINT "Password must be at least 6 characters long."
         CALL Delay(2)
-        GOTO password
+        GOTO auth
     ENDIF
+
+    IF email$ = "" OR password$ = "" THEN GOTO auth
 
     HRA = 0.2 * basicSalary
     MA = 0.15 * basicSalary
@@ -653,7 +926,7 @@ SUB addAdmin()
     monthlyTax = 0
 
     if (totalSalary * 12) <= 500000 THEN
-        monthlyTax = (0.1 * (totalSalary * 12))/12
+        monthlyTax = (0.01 * (totalSalary * 12))/12
     ELSE
         monthlyTax = (0.13 * (totalSalary * 12))/12
     ENDIF
@@ -665,10 +938,13 @@ SUB addAdmin()
     CLOSE #1
     CLOSE #2   
     CLOSE #3
+    CLOSE #4
 
+    LOCATE 13, 15
     PRINT "Admin added successfully with ID: "; id
     CALL Delay(2)
 
+    LOCATE 15, 20
     INPUT "repeat add another admin? (y/n): ", ans$
     IF ans$ = "y" OR ans$ = "Y" THEN
         CALL addAdmin
@@ -679,96 +955,128 @@ END SUB
 
 ' Update Admin
 SUB updateAdmin()
-    CLS
-    PRINT "Updating Admin Details..."
-
     OPEN "admin.dat" FOR INPUT AS #1
     OPEN "temp.dat" FOR OUTPUT AS #2
 
-    INPUT "Enter admin ID to update: ", adminID
+    CLS
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
+
+    LOCATE 7, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 6
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 6
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    LOCATE 5, 17
+    INPUT "Enter Employee ID to update: ", adminID
     found = 0
+
+    LOCATE 9, 1
+    COLOR 6
+    PRINT TAB(2); "id"; TAB(8); "Name"; TAB(17); "Designation"; TAB(32); "Address"; TAB(47); "Department"; TAB(62); "Basic Salary"
+
+    COLOR 7
+    LOCATE 10, 3
+    PRINT STRING$(70, "-")
 
     WHILE NOT EOF(1)
         INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         IF id = adminID THEN
             found = 1
-            PRINT id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+            PRINT TAB(2); id; TAB(8); name$; TAB(17); designation$; TAB(32); address$; TAB(47); department$; TAB(62); basicSalary
+            PRINT TAB(2); STRING$(70, "-")
             PRINT
+            PRINT
+            PRINT TAB(4);
+            DELAY(3)
 
-            ' Update Name
-            INPUT "Do you want to update name? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new name: ", name$
-            END IF
+            INPUT "Confirm employee update (y/n): ", answer$
+    
+            IF answer$ = "y" OR answer$ = "Y" THEN
+                CLS
+                ' Update Name
+                INPUT "Do you want to update name? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new name: ", name$
+                END IF
 
-            ' Update Designation
-            INPUT "Do you want to update designation? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new designation: ", designation$
-            END IF
+                ' Update Designation
+                INPUT "Do you want to update designation? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new designation: ", designation$
+                END IF
 
-            ' Update Address
-            INPUT "Do you want to update address? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new address: ", address$
-            END IF
+                ' Update Address
+                INPUT "Do you want to update address? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new address: ", address$
+                END IF
 
-            ' Update Department
-            INPUT "Do you want to update department? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new department: ", department$
-            END IF
+                ' Update Department
+                INPUT "Do you want to update department? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new department: ", department$
+                END IF
 
-            ' Update Basic Salary
-            INPUT "Do you want to update basic salary? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                INPUT "Enter new basic salary: ", basicSalary
+                ' Update Basic Salary
+                INPUT "Do you want to update basic salary? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    INPUT "Enter new basic salary: ", basicSalary
 
-                HRA = 0.2 * basicSalary
-                MA = 0.15 * basicSalary
-                totalSalary = basicSalary + HRA + MA
-                monthlyTax = 0
+                    HRA = 0.2 * basicSalary
+                    MA = 0.15 * basicSalary
+                    totalSalary = basicSalary + HRA + MA
+                    monthlyTax = 0
 
-                if (totalSalary * 12) <= 500000 THEN
-                    monthlyTax = (0.1 * (totalSalary * 12))/12
-                ELSE
-                    monthlyTax = (0.13 * (totalSalary * 12))/12
-                ENDIF
-                netSalary = totalSalary - monthlyTax
-            END IF
-
-            ' Update admin authentication data
-            INPUT "Do you want to update authentication data? (y/n): ", ans$
-            IF ans$ = "y" OR ans$ = "Y" THEN
-                OPEN "adminAuth.dat" FOR INPUT AS #3
-                OPEN "auth-temp.dat" FOR OUTPUT AS #4
-
-                WHILE NOT EOF(3)
-                    INPUT #3, userID, userEmail$, userPassword$, userRole$
-                    IF userID = empID THEN
-                        ' Update email
-                        INPUT "Do you want to update email? (y/n): ", rep$
-                        IF LCASE$(rep$) = "y" THEN 
-                            INPUT "Enter new email: ", newEmail$
-                        ELSE
-                            newEmail$ = userEmail$
-                        ENDIF
-
-                        ' userRole update code .....
-
-                        WRITE #4, userID, newEmail$, userPassword$, userRole$
+                    if (totalSalary * 12) <= 500000 THEN
+                        monthlyTax = (0.01 * (totalSalary * 12))/12
                     ELSE
-                        WRITE #4, userID, userEmail$, userPassword$, userRole$
-                    END IF
-                WEND
-                CLOSE #3
-                CLOSE #4
-                KILL "adminAuth.dat"
-                NAME "auth-temp.dat" AS "adminAuth.dat"
-            ENDIF
+                        monthlyTax = (0.13 * (totalSalary * 12))/12
+                    ENDIF
+                    netSalary = totalSalary - monthlyTax
+                END IF
 
-            WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
-            PRINT "Employee details updated successfully."
+                ' Update admin authentication data
+                INPUT "Do you want to update authentication data? (y/n): ", ans$
+                IF ans$ = "y" OR ans$ = "Y" THEN
+                    OPEN "adminAuth.dat" FOR INPUT AS #3
+                    OPEN "auth-temp.dat" FOR OUTPUT AS #4
+
+                    WHILE NOT EOF(3)
+                        INPUT #3, userID, userEmail$, userPassword$, userRole$
+                        IF userID = empID THEN
+                            ' Update email
+                            INPUT "Do you want to update email? (y/n): ", rep$
+                            IF LCASE$(rep$) = "y" THEN 
+                                INPUT "Enter new email: ", newEmail$
+                            ELSE
+                                newEmail$ = userEmail$
+                            ENDIF
+
+                            ' userRole update code .....
+
+                            WRITE #4, userID, newEmail$, userPassword$, userRole$
+                        ELSE
+                            WRITE #4, userID, userEmail$, userPassword$, userRole$
+                        END IF
+                    WEND
+                    CLOSE #3
+                    CLOSE #4
+                    KILL "adminAuth.dat"
+                    NAME "auth-temp.dat" AS "adminAuth.dat"
+                ENDIF
+
+                WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+                PRINT "Employee details updated successfully."
+            ENDIF
         ELSE
             WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         ENDIF
@@ -847,6 +1155,46 @@ SUB deleteAdmin()
     END IF
 END SUB
 
+' Create Salary details for Employee
+SUB adminSalaryDetails()
+    CLS
+    PRINT
+    OPEN "admin.dat" FOR INPUT AS #1
+
+    isData = 0
+    COLOR 6
+    PRINT TAB(2); "id"; TAB(8); "Basic Salary"; TAB(23); "Total Salary"; TAB(38); "Monthly Salary"; TAB(55); "Net Salary"
+    COLOR 7
+    LOCATE 3, 2
+    PRINT STRING$(60, "-")
+
+    WHILE NOT EOF(1)
+        INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+        isData = 1
+        PRINT TAB(2); id; TAB(8); basicSalary; TAB(23); totalSalary; TAB(38); monthlyTax; TAB(55); netSalary
+    WEND
+    
+    if isData = 0 then 
+        COLOR 4
+        LOCATE 4,18
+        PRINT "No admin data found."
+    ENDIF
+    CLOSE #1
+
+    COLOR 7
+    PRINT
+    PRINT STRING$(60, "-")
+    DELAY(2)
+
+    ' Main Menu
+    INPUT "Main Menu (y/n): ", ans$
+    If ans$ = "Y" OR ans$ = "y" THEN 
+        CALL ViewAdmin
+    ELSE
+        CALL adminSalaryDetails
+    ENDIF
+END SUB
+
 ' Generate id for admin
 FUNCTIOn genereateIDForAdmin()
     OPEN "admin.dat" FOR INPUT AS #1
@@ -864,9 +1212,8 @@ END FUNCTION
 ' -------------------------------------------------------------------
 
 ' Employee Dashboard
-Sub EmployeeDashboard()
+Sub EmployeeDashboard(id)
     CLS
-
     LOCATE 6, 15
     COLOR 8
     PRINT STRING$(45, "-")
@@ -877,7 +1224,7 @@ Sub EmployeeDashboard()
 
     LOCATE 7, 31
     COLOR 2
-    PRINT "Employee Dashboard"
+    PRINT "Employee Dashboard", id
 
     For i = 7 To 17
         Locate i, 15
@@ -918,6 +1265,6 @@ Sub EmployeeDashboard()
         LOCATE 17, 22
         PRINT error$
         Delay(2)
-        CALL EmployeeDashboard
+        CALL EmployeeDashboard(id)
     ENDIF
 End Sub
