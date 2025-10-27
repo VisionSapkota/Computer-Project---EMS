@@ -657,24 +657,46 @@ END SUB
 
 ' Delete Employee
 SUB DeleteEmployee()
-    CLS
     OPEN "employees.dat" FOR INPUT AS #1
     OPEN "temp.dat" FOR OUTPUT AS #2
     OPEN "empAuth.dat" FOR INPUT AS #3
     OPEN "auth-temp.dat" FOR OUTPUT AS #4
 
+    CLS
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
+
+    LOCATE 7, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 6
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 6
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    LOCATE 5, 17
     INPUT "Enter Employee ID to delete: ", empID
     found = 0
+
+    LOCATE 9, 1
+    COLOR 6
+    PRINT TAB(2); "id"; TAB(8); "Name"; TAB(17); "Designation"; TAB(32); "Address"; TAB(47); "Department"; TAB(62); "Basic Salary"
+
+    COLOR 7
+    LOCATE 10, 3
+    PRINT STRING$(70, "-")
 
     WHILE NOT EOF(1)
         INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         IF id = empID THEN
             found = 1
-            PRINT
-            PRINT TAB(2); "id"; TAB(8); "Name"; TAB(15); "Designation"; TAB(30); "Address"; TAB(45); "Department"; TAB(60); "Basic Salary"
-            PRINT
             PRINT TAB(2); id; TAB(8); name$; TAB(15); designation$; TAB(30); address$; TAB(45); department$; TAB(60); basicSalary
-            PRINT
+            LOCATE 15, 10
             INPUT "Are you sure you want to delete this employee? (y/n): ", ans$
             IF ans$ = "y" OR ans$ = "Y" THEN
                 ' Delete from authentication data
@@ -684,7 +706,8 @@ SUB DeleteEmployee()
                         WRITE #4, authID, userEmail$, userPassword$, role$
                     END IF
                 WEND
-                PRINT
+                COLOR 2
+                LOCATE 17, 25
                 PRINT "Employee deleted successfully."
             ELSE
                 WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
@@ -694,7 +717,8 @@ SUB DeleteEmployee()
         ENDIF
     WEND
 
-    PRINT
+    COLOR 4
+    LOCATE 11, 27
     IF found = 0 THEN PRINT "Employee ID not found."
     CLOSE #1
     CLOSE #2
@@ -705,6 +729,24 @@ SUB DeleteEmployee()
     NAME "temp.dat" AS "employees.dat"
     NAME "auth-temp.dat" AS "empAuth.dat"
 
+    COLOR 7
+    LOCATE 19, 11
+    PRINT STRING$(45, "-")
+
+    LOCATE 23, 11
+    PRINT STRING$(45, "-")
+
+    FOR i = 20 TO 22
+        LOCATE i, 11
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 20 TO 22
+        LOCATE i, 55
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    LOCATE 21, 15
     INPUT "Delete another employee? (y/n): ", ans$
     IF ans$ = "y" OR ans$ = "Y" THEN
         CALL DeleteEmployee
@@ -1270,17 +1312,41 @@ SUB deleteAdmin()
     OPEN "adminAuth.dat" FOR INPUT AS #3
     OPEN "auth-temp.dat" FOR OUTPUT AS #4
 
+        CLS
+    LOCATE 3, 12
+    PRINT STRING$(55, "-")
+
+    LOCATE 7, 12
+    PRINT STRING$(55, "-")
+
+    FOR i = 4 TO 6
+        LOCATE i, 12
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 4 TO 6
+        LOCATE i, 66
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    LOCATE 5, 17
     INPUT "Enter Admin ID to delete: ", adminID
+    found = 0
+
+    LOCATE 9, 1
+    COLOR 6
+    PRINT TAB(2); "id"; TAB(8); "Name"; TAB(17); "Designation"; TAB(32); "Address"; TAB(47); "Department"; TAB(62); "Basic Salary"
+
+    COLOR 7
+    LOCATE 10, 3
+    PRINT STRING$(70, "-")
     found = 0
     WHILE NOT EOF(1)
         INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
         IF id = adminID THEN
             found = 1
-            PRINT
-            PRINT TAB(2); "id"; TAB(8); "Name"; TAB(15); "Designation"; TAB(30); "Address"; TAB(45); "Department"; TAB(60); "Basic Salary"
-            PRINT
             PRINT TAB(2); id; TAB(8); name$; TAB(15); designation$; TAB(30); address$; TAB(45); department$; TAB(60); basicSalary
-            PRINT
+            LOCATE 15, 10
             INPUT "Are you sure you want to delete this admin? (y/n): ", ans$
             IF ans$ = "y" OR ans$ = "Y" THEN
                 ' Delete from authentication data
@@ -1291,7 +1357,8 @@ SUB deleteAdmin()
                     END IF
                 WEND
 
-                PRINT
+                COLOR 2
+                LOCATE 17, 25
                 PRINT "Admin deleted successfully."
             ELSE
                 WRITE #2, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
@@ -1301,7 +1368,8 @@ SUB deleteAdmin()
         ENDIF
     WEND
 
-    PRINT
+    COLOR 4
+    LOCATE 11, 27
     IF found = 0 THEN PRINT "Admin ID not found."
     CLOSE #1
     CLOSE #2
@@ -1313,7 +1381,25 @@ SUB deleteAdmin()
     NAME "temp.dat" AS "admin.dat"
     NAME "auth-temp.dat" AS "adminAuth.dat"
 
-    INPUT "Delete another employee? (y/n): ", ans$
+    COLOR 7
+    LOCATE 19, 11
+    PRINT STRING$(45, "-")
+
+    LOCATE 23, 11
+    PRINT STRING$(45, "-")
+
+    FOR i = 20 TO 22
+        LOCATE i, 11
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    FOR i = 20 TO 22
+        LOCATE i, 55
+        PRINT STRING$(1, "|")
+    NEXT i
+
+    LOCATE 21, 15
+    INPUT "Delete another admin? (y/n): ", ans$
     IF ans$ = "y" OR ans$ = "Y" THEN
         CALL deleteAdmin
     ELSE
