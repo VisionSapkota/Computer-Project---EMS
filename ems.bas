@@ -14,11 +14,13 @@ DECLARE SUB viewAdmin()
 DECLARE SUB addAdmin()
 DECLARE SUB updateAdmin()
 DECLARE SUB deleteAdmin()
+DECLARE SUB profile(empID)
+DECLARE SUB salaryDetails(empID)
 DECLARE FUNCTION genereateIDForEmployee()
 DECLARE FUNCTION genereateIDForAdmin()
 
 CLS
-CALL AdminDashboard
+CALL Login
 END
 
 ' Login
@@ -1476,7 +1478,7 @@ Sub EmployeeDashboard(id)
 
     LOCATE 7, 31
     COLOR 2
-    PRINT "Employee Dashboard", id
+    PRINT "Employee Dashboard"
 
     For i = 7 To 17
         Locate i, 15
@@ -1503,9 +1505,9 @@ Sub EmployeeDashboard(id)
     let error$ = ""
     SELECT CASE choice
         CASE 1
-            PRINT "Salary details"
+            CALL salaryDetails(id)
         CASE 2
-            PRINT "Profile"
+            CALL Profile(id)
         CASE 3
             CALL Login
         CASE ELSE
@@ -1520,3 +1522,59 @@ Sub EmployeeDashboard(id)
         CALL EmployeeDashboard(id)
     ENDIF
 End Sub
+
+' Employee Profile
+SUB Profile(empID)
+    CLS
+    PRINT "====================================="
+    PRINT "           PROFILE SECTION           "
+    PRINT "====================================="
+    OPEN "employees.dat" FOR INPUT AS #1
+    WHILE NOT EOF(1)
+        INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+        
+        IF empID = id THEN
+            PRINT "Name: "; name$
+            PRINT "Designation: "; designation$
+            PRINT "Address: "; address$
+            PRINT "Department: "; department$
+        PRINT "-------------------------------------"
+        ENDIF
+    WEND
+    CLOSE #1
+    PRINT
+    INPUT "Main Menu (y/n): ", ans$
+
+    IF ans$ = "y" OR ans$ = "Y" THEN 
+        CALL EmployeeDashboard(empID)
+    ENDIF
+END SUB
+
+' Employee salaryDetails
+SUB salaryDetails(empID)
+    CLS
+    PRINT "====================================="
+    PRINT "          SALARY DETAILS             "
+    PRINT "====================================="
+    OPEN "employees.dat" FOR INPUT AS #1
+    WHILE NOT EOF(1)
+        INPUT #1, id, name$, designation$, address$, department$, basicSalary, totalSalary, monthlyTax, netSalary
+        
+        IF empID = id THEN
+            PRINT "Name: "; name$
+            PRINT "Department: "; department$
+            PRINT "Basic Salary: "; basicSalary
+            PRINT "Total Salary: "; totalSalary
+            PRINT "Monthly Tax: "; monthlyTax
+            PRINT "Net Salary: "; netSalary
+        PRINT "-------------------------------------"
+        ENDIF
+    WEND
+    CLOSE #1
+    PRINT
+    INPUT "Main Menu (y/n): ", ans$
+
+    IF ans$ = "y" OR ans$ = "Y" THEN 
+        CALL EmployeeDashboard(empID)
+    ENDIF
+END SUB
